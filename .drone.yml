@@ -9,6 +9,7 @@ steps:
   #     - npm install
   #     - npm test
   #     - npm run build
+
   - name: build-image
     image: plugins/docker
     settings:
