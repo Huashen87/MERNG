@@ -9,20 +9,9 @@ const userType = gql`
     createdAt: String!
   }
 
-  input registerInput {
-    username: String!
-    password: String!
-    email: String!
-  }
-
-  input loginInput {
-    username: String!
-    password: String!
-  }
-
   extend type Mutation {
-    register(input: registerInput): User!
-    login(input: loginInput): User!
+    register(username: String!, email: String!, password: String!): User!
+    login(username: String!, password: String!): User!
   }
 `;
 

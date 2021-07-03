@@ -2,46 +2,51 @@ import User from '../../models/User';
 import bcrypt from 'bcryptjs';
 import { UserInputError } from 'apollo-server';
 import { loginInputValidator, registerInputValidator } from '../../util/validator';
-import { generateToken } from '../../util/token';
+import { generateTokenAndPayload } from '../../util/token';
+import { Context } from '../contextType';
+
+interface RegisterInput {
+  username: string;
+  password: string;
+  email: string;
+}
+
+interface LoginInput {
+  username: string;
+  password: string;
+}
 
 const userResolver = {
   Mutation: {
-    async register(_: any, { input: { username, password, email } }: any) {
-      try {
-        const error = registerInputValidator(username, email, password);
-        if (error) throw new UserInputError(error.message);
+    register: async (_: any, { username, password, email }: RegisterInput) => {
+      const error = registerInputValidator(username, email, password);
+      if (error) throw new UserInputError(error.message);
 
-        const existUser = await User.findOne({ username }).exec();
-        if (existUser) throw new UserInputError('username is already taken');
+      const existUser = await User.findOne({ username }).exec();
+      if (existUser) throw new UserInputError('username is already taken');
 
-        password = await bcrypt.hash(password, 10);
-        const user = await User.create({
-          username,
-          password,
-          email,
-          createdAt: new Date().toISOString(),
-        });
+      password = await bcrypt.hash(password, 10);
+      const user = await User.create({
+        username,
+        password,
+        email,
+        createdAt: new Date().toISOString(),
+      });
 
-        return generateToken(user);
-      } catch (err) {
-        throw new Error(err);
-      }
+      const tokenAndPayload = generateTokenAndPayload(user);
+      return tokenAndPayload;
     },
-    async login(_: any, { input: { username, password } }: any) {
-      try {
-        const error = loginInputValidator(username, password);
-        if (error) throw new UserInputError(error.message);
+    login: async (_: any, { username, password }: LoginInput) => {
+      const error = loginInputValidator(username, password);
+      if (error) throw new UserInputError(error.message);
 
-        const user = await User.findOne({ username }).exec();
-        if (!user) throw new UserInputError('user does not exist');
+      const user = await User.findOne({ username }).exec();
+      if (!user) throw new UserInputError('user does not exist');
 
-        const validated = await bcrypt.compare(password, user.password);
-        if (!validated) throw new UserInputError('password is incorrect');
+      const validated = await bcrypt.compare(password, user.password);
+      if (!validated) throw new UserInputError('password is incorrect');
 
-        return generateToken(user);
-      } catch (err) {
-        throw new Error(err);
-      }
+      return generateTokenAndPayload(user);
     },
   },
 };
