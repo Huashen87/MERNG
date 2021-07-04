@@ -3,25 +3,39 @@ type: docker
 name: default
 
 steps:
-  # - name: test
-  #   image: node:16.3.0-alpine
-  #   commands:
-  #     - npm install
-  #     - npm test
-  #     - npm run build
+  - name: test-build
+    image: node:16.3.0-alpine
+    commands:
+      - cd client && npm install
+      # - npm test
+      - npm run build
 
-  - name: build-image
-    image: plugins/docker
-    settings:
-      registry: ghcr.io
-      repo: ghcr.io/huashen87/merng/docker-image
-      auto_tag: true
-      auto_tag_suffix: linux-amd64
-      username: huashen87
-      password:
-        from_secret: github_token
+  # - name: build-image
+  #   image: plugins/docker
+  #   settings:
+  #     registry: ghcr.io
+  #     repo: ghcr.io/huashen87/merng/docker-image
+  #     auto_tag: true
+  #     auto_tag_suffix: linux-amd64
+  #     username: huashen87
+  #     password:
+  #       from_secret: github_token
 
-  - name: ssh-deploy
+  # - name: ssh-deploy
+  #   image: appleboy/drone-ssh
+  #   settings:
+  #     host:
+  #       from_secret: hostname
+  #     username:
+  #       from_secret: ssh_username
+  #     password:
+  #       from_secret: ssh_password
+  #     port: 22
+  #     script:
+  #       - cd /home/ubuntu/Workspace/
+  #       - sh deploy.sh
+
+  - name: ssh-deploy-git
     image: appleboy/drone-ssh
     settings:
       host:
@@ -33,4 +47,4 @@ steps:
       port: 22
       script:
         - cd /home/ubuntu/Workspace/
-        - sh deploy.sh
+        - sh deploy-git.sh
