@@ -19,6 +19,7 @@ const postType = gql`
   }
 
   extend type Query {
+    deleteAllPosts: Boolean!
     getPosts: [Post]!
     getPost(id: ID!): Post!
   }

@@ -1,10 +1,14 @@
-import { AuthenticationError } from 'apollo-server';
+import { AuthenticationError, UserInputError } from 'apollo-server';
 import Post from '../../models/Post';
 import { getUserPayloadFromRequest } from '../../util/token';
 import { Context } from '../contextType';
 
 const postResolver = {
   Query: {
+    deleteAllPosts: async () => {
+      await Post.deleteMany({});
+      return true;
+    },
     getPosts: async () => await Post.find({}),
     getPost: async (id: string) => {
       const post = await Post.findById(id);
@@ -14,7 +18,10 @@ const postResolver = {
   },
   Mutation: {
     createPost: async (_: any, { body }: any, { req, pubsub }: Context) => {
-      if (body.trim() === '') throw new Error('post can not be empty');
+      if (body.trim() === '')
+        throw new UserInputError('post can not be empty', {
+          field: 'body',
+        });
 
       const { username } = getUserPayloadFromRequest(req);
 

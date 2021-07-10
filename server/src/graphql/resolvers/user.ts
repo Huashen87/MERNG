@@ -3,11 +3,11 @@ import bcrypt from 'bcryptjs';
 import { UserInputError } from 'apollo-server';
 import { loginInputValidator, registerInputValidator } from '../../util/validator';
 import { generateTokenAndPayload } from '../../util/token';
-import { Context } from '../contextType';
 
-interface RegisterInput {
+export interface RegisterInput {
   username: string;
   password: string;
+  confirmPassword: string;
   email: string;
 }
 
@@ -18,12 +18,15 @@ interface LoginInput {
 
 const userResolver = {
   Mutation: {
-    register: async (_: any, { username, password, email }: RegisterInput) => {
-      const error = registerInputValidator(username, email, password);
-      if (error) throw new UserInputError(error.message);
+    register: async (_: any, { username, password, email, confirmPassword }: RegisterInput) => {
+      const error = registerInputValidator({ username, email, password, confirmPassword });
+      if (error) throw error;
 
       const existUser = await User.findOne({ username }).exec();
-      if (existUser) throw new UserInputError('username is already taken');
+      if (existUser)
+        throw new UserInputError('username is already taken', {
+          field: 'username',
+        });
 
       password = await bcrypt.hash(password, 10);
       const user = await User.create({
@@ -38,13 +41,19 @@ const userResolver = {
     },
     login: async (_: any, { username, password }: LoginInput) => {
       const error = loginInputValidator(username, password);
-      if (error) throw new UserInputError(error.message);
+      if (error) throw error;
 
       const user = await User.findOne({ username }).exec();
-      if (!user) throw new UserInputError('user does not exist');
+      if (!user)
+        throw new UserInputError('user does not exist', {
+          field: 'username',
+        });
 
       const validated = await bcrypt.compare(password, user.password);
-      if (!validated) throw new UserInputError('password is incorrect');
+      if (!validated)
+        throw new UserInputError('password is incorrect', {
+          field: 'password',
+        });
 
       return generateTokenAndPayload(user);
     },

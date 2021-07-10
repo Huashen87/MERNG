@@ -1,0 +1,5 @@
+mutation ToggleLike($postId: ID!) {
+  toggleLike(postId: $postId) {
+    ...Post
+  }
+}

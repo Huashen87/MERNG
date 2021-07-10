@@ -20,12 +20,13 @@ export const generateTokenAndPayload = (user: UserModel): TokenAndPayload => {
     createdAt: user.createdAt,
   };
 
-  const token = 'Bearer ' + jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
   return { ...payload, token: token };
 };
 
 export const getUserPayloadFromRequest = (res: Request): UserModel => {
   const token = res.headers?.authorization?.split('Bearer ')[1];
+
   if (!token) throw new AuthenticationError('unauthorization');
   try {
     const payload: UserModel = jwt.verify(token, JWT_SECRET) as UserModel;

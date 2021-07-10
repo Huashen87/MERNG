@@ -1,0 +1,18 @@
+fragment Post on Post {
+  id
+  body
+  username
+  createdAt
+  commentsCount
+  comments {
+    id
+    body
+    username
+    createdAt
+  }
+  likesCount
+  likes {
+    username
+    createdAt
+  }
+}
